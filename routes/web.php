@@ -18,3 +18,4 @@ Auth::routes(['register' => false]);
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 Route::get('/user', [UserController::class, 'index'])->name('user.index');
+Route::post('/user/ajaxloadusers', [UserController::class, 'ajaxLoadUsers'])->name('user.ajaxLoadUsers');
