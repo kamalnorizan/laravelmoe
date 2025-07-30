@@ -95,7 +95,7 @@
 @section('scripts')
     <script src="{{ asset('res/plugins/datatables/jquery.dataTables.js') }}"></script>
     <script>
-        $('#user-list').DataTable({
+        var userTbl = $('#user-list').DataTable({
             processing: true,
             serverSide: true,
             responsive: true,
@@ -142,7 +142,13 @@
                 },
                 dataType: "json",
                 success: function (response) {
-
+                    if(response.success) {
+                        $('#userModel').modal('hide');
+                        userTbl.ajax.reload();
+                        alert('User saved successfully!');
+                    } else {
+                        alert('Failed to save user.');
+                    }
                 },
                 error: function (xhr) {
                     if (xhr.status === 422) {

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Str;
 use App\Models\User;
 use App\Models\Sekolah;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\StoreUserRequest;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -34,8 +36,14 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request) {
 
-        User::create($request->all());
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->sekolah_id = $request->sekolah_id;
+        $pass = Hash::make(Str::random(12));
+        $user->password = $pass;
+        $user->save();
 
-        return redirect()->route('user.index')->with('success', 'User created successfully.');
+        return response()->json(['success' => true]);
     }
 }
