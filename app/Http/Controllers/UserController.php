@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Sekolah;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\UserRegistered;
 use App\Http\Requests\StoreUserRequest;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -40,9 +41,11 @@ class UserController extends Controller
         $user->name = $request->name;
         $user->email = $request->email;
         $user->sekolah_id = $request->sekolah_id;
-        $pass = Hash::make(Str::random(12));
-        $user->password = $pass;
+        $pass = Str::random(12);
+        $user->password = Hash::make($pass);
         $user->save();
+
+        $user->notify(new UserRegistered($pass));
 
         return response()->json(['success' => true]);
     }
