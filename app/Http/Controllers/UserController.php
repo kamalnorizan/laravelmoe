@@ -3,14 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Sekolah;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreUserRequest;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
 {
     public function index()
     {
-        return view('user.index');
+        $sekolah = Sekolah::select('id', 'nama_sekolah')->get();
+        return view('user.index', compact('sekolah'));
     }
 
     public function ajaxLoadUsers(Request $request)
@@ -27,5 +30,12 @@ class UserController extends Controller
                 return '1';
             })
             ->make(true);
+    }
+
+    public function store(StoreUserRequest $request) {
+
+        User::create($request->all());
+
+        return redirect()->route('user.index')->with('success', 'User created successfully.');
     }
 }

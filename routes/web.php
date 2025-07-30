@@ -19,3 +19,4 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 Route::get('/user', [UserController::class, 'index'])->name('user.index');
 Route::post('/user/ajaxloadusers', [UserController::class, 'ajaxLoadUsers'])->name('user.ajaxLoadUsers');
+Route::post('/user/store', [UserController::class, 'store'])->name('user.store');

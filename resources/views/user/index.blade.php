@@ -8,8 +8,9 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="mt-4">User Management
-                    <button type="button" class="btn btn-primary btn-lg float-right" data-toggle="modal" data-target="#userModel">
-                    Register User</button>
+                    <button type="button" class="btn btn-primary btn-lg float-right" data-toggle="modal"
+                        data-target="#userModel">
+                        Register User</button>
                 </h1>
                 <p class="lead">Manage users in the system.</p>
                 <!-- Button trigger modal -->
@@ -57,7 +58,30 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    Body
+                    <div class="form-group {{ $errors->has('name') ? 'has-error' : '' }}">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" value="{{ old('name') }}" class="form-control"
+                            required="required">
+                        <small class="text-danger">{{ $errors->first('name') }}</small>
+                    </div>
+                    <div class="form-group {{ $errors->has('email') ? ' has-error' : '' }}">
+                        <label for="email">Email address</label>
+                        <input type="email" id="email" name="email" value="{{ old('email') }}" class="form-control"
+                            required placeholder="eg: foo@bar.com">
+                        <small class="text-danger">{{ $errors->first('email') }}</small>
+                    </div>
+                    <div class="form-group {{ $errors->has('sekolah_id') ? 'has-error' : '' }}">
+                        <label for="sekolah_id">Sekolah</label>
+                        <select id="sekolah_id" name="sekolah_id" class="form-control" required>
+                            <option value="">Select Sekolah</option>
+                            @foreach ($sekolah as $sek)
+                                <option value="{{ $sek->id }}" {{ old('sek_id') == $sek->id ? 'selected' : '' }}>
+                                    {{ $sek->nama_sekolah }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-danger">{{ $errors->first('sekolah_id') }}</small>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -101,6 +125,37 @@
                     searchable: false
                 }
             ]
+        });
+
+        $('#saveBtn').click(function (e) {
+            e.preventDefault();
+            $('.form-control').removeClass('is-invalid');
+            $('.text-danger').text('');
+            $.ajax({
+                type: "POST",
+                url: "{{ route('user.store') }}",
+                data: {
+                    name: $('#name').val(),
+                    email: $('#email').val(),
+                    sekolah_id: $('#sekolah_id').val(),
+                    _token: "{{ csrf_token() }}"
+                },
+                dataType: "json",
+                success: function (response) {
+
+                },
+                error: function (xhr) {
+                    if (xhr.status === 422) {
+                        var errors = xhr.responseJSON.errors;
+                        $.each(errors, function (key, value) {
+                            $('#' + key).addClass('is-invalid');
+                            $('#' + key).next('.text-danger').text(value[0]);
+                        });
+                    } else {
+                        alert('An error occurred while saving the user.');
+                    }
+                }
+            });
         });
     </script>
 @endsection
