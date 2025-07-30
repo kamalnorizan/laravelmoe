@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Str;
 use App\Models\User;
 use App\Models\Sekolah;
+use App\Jobs\CreateUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Notifications\UserRegistered;
@@ -46,6 +47,15 @@ class UserController extends Controller
         $user->save();
 
         $user->notify(new UserRegistered($pass));
+
+        return response()->json(['success' => true]);
+    }
+
+    public function storewithqueue(StoreUserRequest $request) {
+        $name = $request->name;
+        $email = $request->email;
+        $sekolah_id = $request->sekolah_id;
+        CreateUser::dispatch($name, $email, $sekolah_id);
 
         return response()->json(['success' => true]);
     }
