@@ -21,3 +21,4 @@ Route::get('/user', [UserController::class, 'index'])->name('user.index');
 Route::post('/user/ajaxloadusers', [UserController::class, 'ajaxLoadUsers'])->name('user.ajaxLoadUsers');
 Route::post('/user/ajaxloaduser', [UserController::class, 'ajaxLoadUser'])->name('user.ajaxLoadUser');
 Route::post('/user/store', [UserController::class, 'store'])->name('user.store');
+Route::delete('/user/delete', [UserController::class, 'destroy'])->name('user.delete');

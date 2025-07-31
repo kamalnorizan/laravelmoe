@@ -9,9 +9,9 @@
             <div class="col-md-12">
                 <h1 class="mt-4">User Management
                     @canany(['create users', 'delete users'])
-                    <button type="button" class="btn btn-primary btn-lg float-right" data-toggle="modal"
-                        data-target="#userModel">
-                        Register User</button>
+                        <button type="button" class="btn btn-primary btn-lg float-right" data-toggle="modal"
+                            data-target="#userModel">
+                            Register User</button>
                     @endcanany
                 </h1>
                 <p class="lead">Manage users in the system.</p>
@@ -108,8 +108,9 @@
                         @foreach ($permissions as $permission)
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input permission" type="checkbox" value="{{ $permission->name }}"
-                                        id="permission_{{ $permission->id }}" name="permissions[]">
+                                    <input class="form-check-input permission" type="checkbox"
+                                        value="{{ $permission->name }}" id="permission_{{ $permission->id }}"
+                                        name="permissions[]">
                                     <label class="form-check-label" for="permission_{{ $permission->id }}">
                                         {{ strtoupper($permission->name) }}
                                     </label>
@@ -128,6 +129,9 @@
 @endsection
 
 @section('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"
+        integrity="sha512-AA1Bzp5Q0K1KanKKmvN/4d3IRKVlv9PYgwFPvm32nPO6QS8yH1HO7LbgB1pgiOxPtfeg5zEn2ba64MUcqJx6CA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="{{ asset('res/plugins/datatables/jquery.dataTables.js') }}"></script>
     <script>
         var userTbl = $('#user-list').DataTable({
@@ -165,7 +169,57 @@
             ]
         });
 
-        $(document).on("click",".edit-user",function (e) {
+        $(document).on("click", ".delete-user", function(e) {
+            e.preventDefault();
+            var id = $(this).data("id");
+
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this user again!",
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "Cancel",
+                        value: null,
+                        visible: true,
+                        className: "",
+                        closeModal: true,
+                    },
+                    confirm: {
+                        text: "Yes, i'm sure!",
+                        value: true,
+                        visible: true,
+                        className: "btn-danger",
+                        closeModal: true
+                    }
+                }
+            }).then((value) => {
+                if (!value) {
+                    return;
+                }
+
+                $.ajax({
+                    type: "post",
+                    url: "{{ route('user.delete') }}",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        _method: 'DELETE',
+                        id: id
+                    },
+                    dataType: "json",
+                    success: function(response) {
+
+                        userTbl.ajax.reload(function() {
+                            swal("Deleted!", "The user has been deleted successfully.", "success");
+                        }, false);
+
+                    }
+                });
+            });
+        });
+
+
+        $(document).on("click", ".edit-user", function(e) {
             var userId = $(this).data("id");
 
             $.ajax({
@@ -176,7 +230,7 @@
                     _token: "{{ csrf_token() }}"
                 },
                 dataType: "json",
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
                         $('#name').val(response.data.name);
                         $('#email').val(response.data.email);
@@ -190,28 +244,34 @@
 
                         $('.permission').prop('checked', false);
                         response.data.permissions.forEach(function(permission) {
-                            $('#permission_' + permission.id).prop('checked', true);
+                            $('#permission_' + permission.id).prop('checked',
+                                true);
                         });
 
                         $('#userModel').modal('show');
+
                     } else {
-                        alert('Failed to load user data.');
+                        swal({
+                            title: "User could not be loaded",
+                            text: "User data could not be loaded.",
+                            icon: "danger",
+                        });
                     }
                 }
             });
         });
 
-        $('#saveBtn').click(function (e) {
+        $('#saveBtn').click(function(e) {
             e.preventDefault();
             $('.form-control').removeClass('is-invalid');
             $('.text-danger').text('');
             var roles = [];
-            $('.role:checked').each(function () {
+            $('.role:checked').each(function() {
                 roles.push($(this).val());
             });
 
             var permissions = [];
-            $('.permission:checked').each(function () {
+            $('.permission:checked').each(function() {
                 permissions.push($(this).val());
             });
             $.ajax({
@@ -227,19 +287,27 @@
                     _token: "{{ csrf_token() }}"
                 },
                 dataType: "json",
-                success: function (response) {
-                    if(response.success) {
+                success: function(response) {
+                    if (response.success) {
+                        swal({
+                            title: "User Loaded",
+                            text: "User data has been loaded successfully.",
+                            icon: "success",
+                        });
                         $('#userModel').modal('hide');
                         userTbl.ajax.reload();
-                        alert('User saved successfully!');
                     } else {
-                        alert('Failed to save user.');
+                        swal({
+                            title: "User could not be saved",
+                            text: "Please check the form for errors.",
+                            icon: "warning",
+                        }); // Show warning if user could not be saved
                     }
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     if (xhr.status === 422) {
                         var errors = xhr.responseJSON.errors;
-                        $.each(errors, function (key, value) {
+                        $.each(errors, function(key, value) {
                             $('#' + key).addClass('is-invalid');
                             $('#' + key).next('.text-danger').text(value[0]);
                         });

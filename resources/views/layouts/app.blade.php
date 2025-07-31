@@ -38,44 +38,12 @@
                             <a class="nav-link {{ request()->routeIs('user.index') ? 'active' : '' }}"
                                 href="{{ route('user.index') }}">Users</a>
                         </li>
+                        <li class="nav-item btnlogout">
+                            <a class="nav-link {{ request()->routeIs('logout') ? 'active' : '' }}"
+                                href="#">Logout</a>
+                        </li>
                     </ul>
 
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav  float-end">
-                        <!-- Authentication Links -->
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
-                            @endif
-
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
-                        @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                                    data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
-                                </a>
-
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <a class="dropdown-item" href="{{ route('logout') }}"
-                                        onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>
-
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
-                        @endguest
-                    </ul>
                 </div>
             </div>
         </nav>
@@ -84,16 +52,23 @@
             @yield('content')
         </main>
     </div>
+    <form action="{{ route('logout') }}" method="POST" id="logout-form">
+        @csrf
+    </form>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="{{ asset('res/plugins/jquery/jquery.js') }}">
-    </script>
+    <script src="{{ asset('res/plugins/jquery/jquery.js') }}"></script>
     {{-- <script src="{{ asset('res/plugins/popper/popper.min.js') }}">
     </script> --}}
-    <script src="{{ asset('res/plugins/bootstrap/js/bootstrap.min.js') }}">
-    </script>
+    <script src="{{ asset('res/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
     @stack('script')
     @yield('scripts')
+    <script>
+        $('.btnlogout').click(function (e) {
+            e.preventDefault();
+            $('#logout-form').submit();
+        });
+    </script>
 </body>
 
 </html>
