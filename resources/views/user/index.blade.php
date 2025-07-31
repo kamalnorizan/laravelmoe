@@ -35,6 +35,9 @@
                                     Sekolah
                                 </th>
                                 <th>
+                                    Roles/Permissions
+                                </th>
+                                <th>
                                     Action
                                 </th>
                             </thead>
@@ -49,7 +52,7 @@
 
     <!-- Modal -->
     <div class="modal fade" id="userModel" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Manage User</h5>
@@ -81,6 +84,35 @@
                             @endforeach
                         </select>
                         <small class="text-danger">{{ $errors->first('sekolah_id') }}</small>
+                    </div>
+                    <hr>
+                    <h4>Roles</h4>
+                    <div class="row">
+                        @foreach ($roles as $role)
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input role" type="checkbox" value="{{ $role->name }}"
+                                        id="role_{{ $role->id }}" name="roles[]">
+                                    <label class="form-check-label" for="role_{{ $role->id }}">
+                                        {{ strtoupper($role->name) }}
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <h4>Permissions</h4>
+                    <div class="row">
+                        @foreach ($permissions as $permission)
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input permission" type="checkbox" value="{{ $permission->name }}"
+                                        id="permission_{{ $permission->id }}" name="permissions[]">
+                                    <label class="form-check-label" for="permission_{{ $permission->id }}">
+                                        {{ strtoupper($permission->name) }}
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -119,6 +151,9 @@
                     name: 'sekolah.nama_sekolah'
                 },
                 {
+                    data: 'roles_permissions',
+                },
+                {
                     data: 'action',
                     name: 'action',
                     orderable: false,
@@ -131,6 +166,15 @@
             e.preventDefault();
             $('.form-control').removeClass('is-invalid');
             $('.text-danger').text('');
+            var roles = [];
+            $('.role:checked').each(function () {
+                roles.push($(this).val());
+            });
+
+            var permissions = [];
+            $('.permission:checked').each(function () {
+                permissions.push($(this).val());
+            });
             $.ajax({
                 type: "POST",
                 url: "{{ route('user.store') }}",
@@ -138,6 +182,8 @@
                     name: $('#name').val(),
                     email: $('#email').val(),
                     sekolah_id: $('#sekolah_id').val(),
+                    roles: roles,
+                    permissions: permissions,
                     _token: "{{ csrf_token() }}"
                 },
                 dataType: "json",

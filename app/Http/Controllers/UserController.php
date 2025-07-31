@@ -7,9 +7,11 @@ use App\Models\User;
 use App\Models\Sekolah;
 use App\Jobs\CreateUser;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use App\Notifications\UserRegistered;
 use App\Http\Requests\StoreUserRequest;
+use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
 
 class UserController extends Controller
@@ -17,7 +19,9 @@ class UserController extends Controller
     public function index()
     {
         $sekolah = Sekolah::select('id', 'nama_sekolah')->get();
-        return view('user.index', compact('sekolah'));
+        $roles = Role::select('id', 'name')->get();
+        $permissions = Permission::select('id', 'name')->get();
+        return view('user.index', compact('sekolah', 'roles', 'permissions'));
     }
 
     public function ajaxLoadUsers(Request $request)
@@ -30,9 +34,21 @@ class UserController extends Controller
             ->addColumn('sekolah', function ($user) {
                 return $user->sekolah->nama_sekolah;
             })
+            ->addColumn('roles_permissions', function ($user) {
+                $roles = '';
+                foreach ($user->getRoleNames() as $role) {
+                    $roles .= '<span class="badge badge-primary">' . $role . '</span> ';
+                }
+                $permissions = '';
+                foreach ($user->getDirectPermissions() as $permission) {
+                    $permissions .= '<span class="badge badge-secondary">' . $permission->name . '</span> ';
+                }
+                return $roles . $permissions;
+            })
             ->addColumn('action', function ($user) {
                 return '1';
             })
+            ->rawColumns(['roles_permissions', 'action'])
             ->make(true);
     }
 
@@ -47,6 +63,14 @@ class UserController extends Controller
         $user->save();
 
         $user->notify(new UserRegistered($pass));
+
+        if ($request->has('roles')) {
+            $user->syncRoles($request->roles);
+        }
+
+        if ($request->has('permissions')) {
+            $user->syncPermissions($request->permissions);
+        }
 
         return response()->json(['success' => true]);
     }
