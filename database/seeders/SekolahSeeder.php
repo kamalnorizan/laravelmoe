@@ -17,6 +17,7 @@ class SekolahSeeder extends Seeder
     public function run(): void
     {
         Sekolah::create([
+            'id' => 1,
             'uuid' => Uuid::uuid4(),
             'kod_sekolah' => 'K001',
             'nama_sekolah' => 'Sekolah Kebangsaan 1',
@@ -26,6 +27,7 @@ class SekolahSeeder extends Seeder
         ]);
 
         Sekolah::create([
+            'id' => 2,
             'uuid' => Uuid::uuid4(),
             'kod_sekolah' => 'K002',
             'nama_sekolah' => 'Sekolah Kebangsaan 2',
