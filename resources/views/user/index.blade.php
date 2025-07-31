@@ -8,9 +8,11 @@
         <div class="row">
             <div class="col-md-12">
                 <h1 class="mt-4">User Management
+                    @canany(['create users', 'delete users'])
                     <button type="button" class="btn btn-primary btn-lg float-right" data-toggle="modal"
                         data-target="#userModel">
                         Register User</button>
+                    @endcanany
                 </h1>
                 <p class="lead">Manage users in the system.</p>
                 <!-- Button trigger modal -->
@@ -61,6 +63,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <input type="hidden" name="id" id="user_id" value="">
                     <div class="form-group {{ $errors->has('name') ? 'has-error' : '' }}">
                         <label for="name">Name</label>
                         <input type="text" id="name" name="name" value="{{ old('name') }}" class="form-control"
@@ -162,6 +165,42 @@
             ]
         });
 
+        $(document).on("click",".edit-user",function (e) {
+            var userId = $(this).data("id");
+
+            $.ajax({
+                type: "post",
+                url: "{{ route('user.ajaxLoadUser') }}",
+                data: {
+                    id: userId,
+                    _token: "{{ csrf_token() }}"
+                },
+                dataType: "json",
+                success: function (response) {
+                    if (response.success) {
+                        $('#name').val(response.data.name);
+                        $('#email').val(response.data.email);
+                        $('#sekolah_id').val(response.data.sekolah_id);
+                        $('#user_id').val(response.data.id);
+
+                        $('.role').prop('checked', false);
+                        response.data.roles.forEach(function(role) {
+                            $('#role_' + role.id).prop('checked', true);
+                        });
+
+                        $('.permission').prop('checked', false);
+                        response.data.permissions.forEach(function(permission) {
+                            $('#permission_' + permission.id).prop('checked', true);
+                        });
+
+                        $('#userModel').modal('show');
+                    } else {
+                        alert('Failed to load user data.');
+                    }
+                }
+            });
+        });
+
         $('#saveBtn').click(function (e) {
             e.preventDefault();
             $('.form-control').removeClass('is-invalid');
@@ -182,6 +221,7 @@
                     name: $('#name').val(),
                     email: $('#email').val(),
                     sekolah_id: $('#sekolah_id').val(),
+                    id: $('#user_id').val(),
                     roles: roles,
                     permissions: permissions,
                     _token: "{{ csrf_token() }}"

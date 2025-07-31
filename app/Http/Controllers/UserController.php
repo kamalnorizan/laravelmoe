@@ -8,6 +8,7 @@ use App\Models\Sekolah;
 use App\Jobs\CreateUser;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Notifications\UserRegistered;
 use App\Http\Requests\StoreUserRequest;
@@ -22,6 +23,17 @@ class UserController extends Controller
         $roles = Role::select('id', 'name')->get();
         $permissions = Permission::select('id', 'name')->get();
         return view('user.index', compact('sekolah', 'roles', 'permissions'));
+    }
+
+    public function ajaxLoadUser(Request $request){
+        $user = User::with(['sekolah' => function($query) {
+            $query->select('id', 'nama_sekolah');
+        }, 'roles', 'permissions'])->findOrFail($request->id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $user
+        ]);
     }
 
     public function ajaxLoadUsers(Request $request)
@@ -46,23 +58,39 @@ class UserController extends Controller
                 return $roles . $permissions;
             })
             ->addColumn('action', function ($user) {
-                return '1';
+                $editButton = '';
+                if(Auth::user()->can('edit users')) {
+                    $editButton = '<button class="btn btn-sm btn-primary edit-user" data-id="' . $user->id . '">Edit</button>';
+                }
+
+                if(Auth::user()->can('delete users')) {
+                    $deleteButton = '<button class="btn btn-sm btn-danger delete-user" data-id="' . $user->id . '">Delete</button>';
+                } else {
+                    $deleteButton = '';
+                }
+                return $editButton . ' ' . $deleteButton;
             })
             ->rawColumns(['roles_permissions', 'action'])
             ->make(true);
     }
 
     public function store(StoreUserRequest $request) {
+        if($request->has('id') && $request->id != '') {
+            $user = User::findOrFail($request->id);
+        } else {
+            $user = new User();
+            $pass = Str::random(12);
+            $user->password = Hash::make($pass);
+        }
 
-        $user = new User();
         $user->name = $request->name;
         $user->email = $request->email;
         $user->sekolah_id = $request->sekolah_id;
-        $pass = Str::random(12);
-        $user->password = Hash::make($pass);
-        $user->save();
 
-        $user->notify(new UserRegistered($pass));
+        $user->save();
+        if(!$request->has('id') && $request->id == '') {
+            $user->notify(new UserRegistered($pass));
+        }
 
         if ($request->has('roles')) {
             $user->syncRoles($request->roles);
